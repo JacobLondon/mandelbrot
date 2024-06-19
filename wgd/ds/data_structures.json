@@ -1,0 +1,50 @@
+{
+    "vectordef.h": [
+        {
+            "$NN": "INT", "$Nn": "Int", "$nn": "int", "$T": "int",
+            "$ZEROVALUE": "(!a)",
+            "$FREEVALUE": "NULL"
+        },
+        {
+            "$NN": "LONG", "$Nn": "Long", "$nn": "long", "$T": "long",
+            "$ZEROVALUE": "(!a)",
+            "$FREEVALUE": "NULL"
+        },
+        {
+            "$NN": "STR", "$Nn": "Str", "$nn": "str", "$T": "const char *",
+            "$ZEROVALUE": "(!a)",
+            "$FREEVALUE": "NULL"
+        }
+    ],
+    "listdef.h": [
+        {
+            "$NN": "INT", "$Nn": "Int", "$nn": "int", "$T": "int",
+            "$ZEROVALUE": "(!a)",
+            "$FREEVALUE": "NULL"
+        }
+    ],
+    "dictdef.h": [
+        {
+            "$TT": "SSTR", "$Tt": "SStr", "$tt": "sstr", "$K": "const char *",
+            "$VV": "INT", "$Vv": "Int", "$vv": "int", "$U": "int",
+            "$REFKEY": "(a)",
+            "$FREEKEY": "NULL",
+            "$FREEVALUE": "NULL",
+            "$SIZEOFKEY": "strlen((const char *)a)",
+            "$CMPKEY": "strcmp(a, b)",
+            "$ZEROKEY": "(!a)",
+            "$ZEROVALUE": "(!a)"
+        },
+        {
+            "$TT": "STR", "$Tt": "Str", "$tt": "str", "$K": "char *",
+            "$VV": "INT", "$Vv": "Int", "$vv": "int", "$U": "int",
+            "$REFKEY": "(a)",
+            "$FREEKEY": "free(a)",
+            "$FREEVALUE": "NULL",
+            "$SIZEOFKEY": "strlen((const char *)a)",
+            "$CMPKEY": "strcmp(a, b)",
+            "$ZEROKEY": "(!a)",
+            "$ZEROVALUE": "(!a)"
+        }
+    ]
+}
