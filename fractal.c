@@ -17,6 +17,10 @@ Iterations: 214
 Runtime: 51.299721s
 Plotting time: 38.637908s (75.317970 %) | 0.180551 s/it
 Conversion time: 4.040135s (7.875550 %) | 0.018879 s/it
+
+@TODO: Add fancier colors
+@TODO: Improve performance
+@TODO: Why calculate viewport for every viewport pixel? Can't we just get the corners?
 */
 
 typedef long double double1;
@@ -35,7 +39,7 @@ typedef struct double4
     double1 height;
 } double4;
 
-#define MAX_ITERATION 100
+static int MAX_ITERATION = 100;
 #define MAGNITUDE 4.0l
 static void plot(double1 x0, double1 y0, int renderx, int rendery)
 {
@@ -136,6 +140,15 @@ static int module(int argc, char **argv)
             view = (double4){0, 0, 4, 2};
         }
 
+        if (IsKeyDown(KEY_RIGHT_BRACKET))
+        {
+            MAX_ITERATION += 1;
+        }
+        if (IsKeyDown(KEY_LEFT_BRACKET))
+        {
+            MAX_ITERATION -= 1;
+        }
+
         // Zoom
         const float zooming = GetMouseWheelMove();
         if (zooming != 0.0)
@@ -172,6 +185,8 @@ static int module(int argc, char **argv)
         char buf[32];
         snprintf(buf, sizeof(buf), "%Lf, %Lf", view.x, view.y);
         DrawText(buf, 0, screen.height-16, 16, WHITE);
+        snprintf(buf, sizeof(buf), "Iterations: %d", MAX_ITERATION);
+        DrawText(buf, 0, screen.height-32, 16, WHITE);
         EndDrawing();
 
         iterations++;
