@@ -1,5 +1,12 @@
 #include <stdio.h>
+
+#if defined(_WIN32)
 #include <raylib/raylib.h>
+#elif defined(__APPLE__)
+#include <raylib.h>
+#else
+#error "Include path no configured for your OS. Please find raylib.h and insert it here.
+#endif
 
 static double runtime;
 static double plottingtime;
