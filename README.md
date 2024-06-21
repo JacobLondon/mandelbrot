@@ -14,7 +14,7 @@ brew install raylib
 # Build the program
 mkdir build
 cd build
-cmake ..
+cmake -DCMAKE_BUILD_TYPE=Release ..
 make
 ./far
 ```
