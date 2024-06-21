@@ -189,8 +189,8 @@ static int module(int argc, char **argv)
 
         DrawFPS(0, 0);
 
-        char buf[32];
-        snprintf(buf, sizeof(buf), "%Lf, %Lf", view.x, view.y);
+        char buf[64];
+        snprintf(buf, sizeof(buf), "%+01.020Lf, %+30.020Lf", view.x, view.y);
         DrawText(buf, 0, screen.height-16, 16, WHITE);
         snprintf(buf, sizeof(buf), "Iterations: %d", MAX_ITERATION);
         DrawText(buf, 0, screen.height-32, 16, WHITE);
