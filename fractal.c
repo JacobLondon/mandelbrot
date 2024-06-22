@@ -8,11 +8,9 @@
 #error "Include path no configured for your OS. Please find raylib.h and insert it here.
 #endif
 
-static double runtime;
-static double plottingtime;
-static double conversiontime;
-
 /*
+Method 1
+
 long double
 Iterations: 194
 Runtime: 47.879351
@@ -24,7 +22,12 @@ Iterations: 214
 Runtime: 51.299721s
 Plotting time: 38.637908s (75.317970 %) | 0.180551 s/it
 Conversion time: 4.040135s (7.875550 %) | 0.018879 s/it
+*/
+static double runtime;
+static double plottingtime;
+static double conversiontime;
 
+/*
 @TODO: Add fancier colors
 @TODO: Improve performance
 @TODO: Why calculate viewport for every viewport pixel? Can't we just get the corners?
@@ -177,6 +180,15 @@ static int module(int argc, char **argv)
 
         // Don't draw then going to infinity, just remain clear
         ClearBackground(BLACK);
+
+    #if 0
+        // Method 1: per-pixel viewport calculation
+        /*
+        Iterations: 94
+        Runtime: 7.024289s
+        Plotting time: 5.570668s (79.305783 %) | 0.059262 s/it
+        Conversion time: 0.422739s (6.018242 %) | 0.004497 s/it
+        */
         for (i = -screen_height_half; i < screen_height_half; i += 1)
         {
             for (j = -screen_width_half; j < screen_width_half; j += 1)
@@ -186,6 +198,27 @@ static int module(int argc, char **argv)
                 plot(coords.x, coords.y, j+(int)screen_width_half, i+(int)screen_height_half);
             }
         }
+    #elif 1
+        // Method 2: Calculate view port at corners
+        /*
+        Iterations: 925
+        Runtime: 138.787185s
+        Plotting time: 133.373896s (96.099576 %) | 0.144188 s/it
+        Conversion time: 0.000036s (0.000026 %) | 0.000000 s/it
+        */
+        const double2 topleft     = window_to_viewport(&screen, &view, -screen_width_half, -screen_height_half);
+        const double2 bottomright = window_to_viewport(&screen, &view, screen_width_half, screen_height_half);
+        const double1 width       = (bottomright.x - topleft.x) / screen.width;
+        const double1 height      = (bottomright.y - topleft.y) / screen.height;
+
+        for (i = 0; i < screen.height; i += 1)
+        {
+            for (j = 0; j < screen.width; j += 1)
+            {
+                plot(j*width + topleft.x, i*height + topleft.y, j, i);
+            }
+        }
+    #endif
 
         DrawFPS(0, 0);
 
