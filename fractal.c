@@ -8,6 +8,8 @@
 #error "Include path no configured for your OS. Please find raylib.h and insert it here.
 #endif
 
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
+
 /*
 Method 1
 
@@ -53,7 +55,6 @@ static int MAX_ITERATION = 100;
 #define MAGNITUDE 4.0l
 static void plot(double1 x0, double1 y0, int renderx, int rendery)
 {
-    const double start = GetTime();
     double1 x = 0;
     double1 y = 0;
     double1 x2, y2;
@@ -77,8 +78,31 @@ static void plot(double1 x0, double1 y0, int renderx, int rendery)
     }
 
     DrawPixel(renderx, rendery, color);
-    const double end = GetTime();
-    plottingtime += (end - start);
+}
+
+static void plot2(double1 x0, double1 y0, Color *color)
+{
+    double1 x = 0;
+    double1 y = 0;
+    double1 x2, y2;
+    int iteration = 0;
+
+    while ((iteration < MAX_ITERATION) &&
+           ( ( (x2=x*x) + (y2=y*y) ) <= MAGNITUDE)
+          )
+    {
+        y = 2.0l*x*y + y0;
+        x = x2 - y2 + x0;
+
+        iteration += 1;
+    }
+
+    *color = BLACK;
+    if (iteration < MAX_ITERATION)
+    {
+        const int tmp = (int)( (float)iteration / (float)MAX_ITERATION * 255.0f );
+        *color = (Color){tmp, tmp, tmp, 255};
+    }
 }
 
 static double2 _window_to_viewport(
@@ -127,7 +151,7 @@ static int module(int argc, char **argv)
     const double1 screen_width_half = screen.width / 2.0l;
     const double1 screen_height_half = screen.height / 2.0l;
 
-    int i, j;
+    int i, j, k;
     const double start = GetTime();
     size_t iterations = 0;
     while (!WindowShouldClose())
@@ -178,17 +202,16 @@ static int module(int argc, char **argv)
             }
         }
 
-        // Don't draw then going to infinity, just remain clear
-        ClearBackground(BLACK);
-
     #if 0
         // Method 1: per-pixel viewport calculation
         /*
-        Iterations: 94
-        Runtime: 7.024289s
-        Plotting time: 5.570668s (79.305783 %) | 0.059262 s/it
-        Conversion time: 0.422739s (6.018242 %) | 0.004497 s/it
+        `Iterations: 342
+        Runtime: 31.287068s
+        Iterations/s: 10.931034
+        Plotting time: 30.850403s (98.604329 %) | 0.090206 s/it
+        Conversion time: 1.359463s (4.345128 %) | 0.003975 s/it
         */
+        const double start = GetTime();
         for (i = -screen_height_half; i < screen_height_half; i += 1)
         {
             for (j = -screen_width_half; j < screen_width_half; j += 1)
@@ -198,14 +221,19 @@ static int module(int argc, char **argv)
                 plot(coords.x, coords.y, j+(int)screen_width_half, i+(int)screen_height_half);
             }
         }
-    #elif 1
+        const double end = GetTime();
+        plottingtime += (end - start);
+    #elif 0
         // Method 2: Calculate view port at corners
         /*
-        Iterations: 925
-        Runtime: 138.787185s
-        Plotting time: 133.373896s (96.099576 %) | 0.144188 s/it
-        Conversion time: 0.000036s (0.000026 %) | 0.000000 s/it
+        Iterations: 348
+        Runtime: 29.323096s
+        Iterations/s: 11.867778
+        Plotting time: 28.890165s (98.523584 %) | 0.083018 s/it
+        Conversion time: 0.000014s (0.000048 %) | 0.000000 s/it
         */
+        const double start = GetTime();
+
         const double2 topleft     = window_to_viewport(&screen, &view, -screen_width_half, -screen_height_half);
         const double2 bottomright = window_to_viewport(&screen, &view, screen_width_half, screen_height_half);
         const double1 width       = (bottomright.x - topleft.x) / screen.width;
@@ -218,6 +246,41 @@ static int module(int argc, char **argv)
                 plot(j*width + topleft.x, i*height + topleft.y, j, i);
             }
         }
+        const double end = GetTime();
+        plottingtime += (end - start);
+    #elif 1
+        // Method 3: Attempt grouping calculations together
+        /*
+        Iterations: 441
+        Runtime: 33.526224s
+        Iterations/s: 13.153882
+        Plotting time: 32.947251s (98.273074 %) | 0.074710 s/it
+        Conversion time: 0.000017s (0.000052 %) | 0.000000 s/it
+        */
+        const double start = GetTime();
+
+        const double2 topleft     = window_to_viewport(&screen, &view, -screen_width_half, -screen_height_half);
+        const double2 bottomright = window_to_viewport(&screen, &view, screen_width_half, screen_height_half);
+        const double1 width       = (bottomright.x - topleft.x) / screen.width;
+        const double1 height      = (bottomright.y - topleft.y) / screen.height;
+        static Color colors[800];
+
+        for (i = 0; i < screen.height; i += 1)
+        {
+            const double1 y0 = i*height + topleft.y;
+            for (j = 0; j < screen.width; j += 1)
+            {
+                const double1 x0 = j*width + topleft.x;
+                plot2(x0, y0, &colors[j]);
+            }
+
+            for (j = 0; j < screen.width; j += 1)
+            {
+                DrawPixel(j, i, colors[j]);
+            }
+        }
+        const double end = GetTime();
+        plottingtime += (end - start);
     #endif
 
         DrawFPS(0, 0);
@@ -237,6 +300,7 @@ static int module(int argc, char **argv)
 
     printf("Iterations: %zu\n", iterations);
     printf("Runtime: %lfs\n", runtime);
+    printf("Iterations/s: %lf\n", (double)iterations / runtime);
     printf("Plotting time: %lfs (%lf %%) | %lf s/it\n",
         plottingtime,
         plottingtime/runtime*100.0,
