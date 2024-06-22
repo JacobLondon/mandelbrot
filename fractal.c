@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 
 #if defined(_WIN32)
 #include <raylib/raylib.h>
@@ -51,6 +52,8 @@ typedef struct double4
     double1 height;
 } double4;
 
+static Color color_gradient[256];
+
 static int MAX_ITERATION = 100;
 #define MAGNITUDE 4.0l
 static void plot(double1 x0, double1 y0, int renderx, int rendery)
@@ -74,7 +77,8 @@ static void plot(double1 x0, double1 y0, int renderx, int rendery)
     if (iteration < MAX_ITERATION)
     {
         const int tmp = (int)( (float)iteration / (float)MAX_ITERATION * 255.0f );
-        color = (Color){tmp, tmp, tmp, 255};
+        //color = (Color){tmp, tmp, tmp, 255};
+        color = color_gradient[tmp];
     }
 
     DrawPixel(renderx, rendery, color);
@@ -101,7 +105,8 @@ static void plot2(double1 x0, double1 y0, Color *color)
     if (iteration < MAX_ITERATION)
     {
         const int tmp = (int)( (float)iteration / (float)MAX_ITERATION * 255.0f );
-        *color = (Color){tmp, tmp, tmp, 255};
+        //*color = (Color){tmp, tmp, tmp, 255};
+        *color = color_gradient[tmp];
     }
 }
 
@@ -141,11 +146,49 @@ static void window_to_viewport_zoom(const double4 *window, double4 *viewport, co
     viewport->y += xform_viewport.y - new_viewport.y;
 }
 
+static void load_color_gradient(Color gradient[256], unsigned start, unsigned end)
+{
+    double color_start, color_end;
+    double color_width;
+    int i;
+
+    const unsigned sr = (start & 0xFF0000) >> 16;
+    const unsigned sg = (start & 0x00FF00) >> 8;
+    const unsigned sb = (start & 0x0000FF);
+    const unsigned er = (end   & 0xFF0000) >> 16;
+    const unsigned eg = (end   & 0x00FF00) >> 8;
+    const unsigned eb = (end   & 0x0000FF);
+
+    color_width = ((double)er - (double)sr) / 256.0;
+    for (i = 0; i < 256; i++)
+    {
+        gradient[i].r = round(sr + color_width * i);
+        gradient[i].a = 255;
+    }
+
+    color_width = ((double)eg - (double)sg) / 256.0;
+    for (i = 0; i < 256; i++)
+    {
+        gradient[i].g = round(sg + color_width * i);
+    }
+
+    color_width = ((double)eb - (double)sb) / 256.0;
+    for (i = 0; i < 256; i++)
+    {
+        gradient[i].b = round(sb + color_width * i);
+    }
+}
+
 static int module(int argc, char **argv)
 {
     double4 screen = {0, 0, 800, 400};
     double4 view = {0, 0, 4, 2};
     double now;
+
+    //load_color_gradient(color_gradient, 0x000000, 0xFFFFFF);
+    //load_color_gradient(color_gradient, 0x0ABFBC, 0xFC354C);
+    //load_color_gradient(color_gradient, 0xFC354C, 0x0ABFBC);
+    load_color_gradient(color_gradient, 0x3D7EAA, 0xFFE47A);
 
     InitWindow(screen.width, screen.height, "Mandelbrot");
     const double1 screen_width_half = screen.width / 2.0l;
