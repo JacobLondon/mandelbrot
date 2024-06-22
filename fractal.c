@@ -148,7 +148,6 @@ static void window_to_viewport_zoom(const double4 *window, double4 *viewport, co
 
 static void load_color_gradient(Color *gradient, size_t gradient_size, unsigned start, unsigned end)
 {
-    double color_start, color_end;
     double color_width;
     size_t i;
 
@@ -181,10 +180,13 @@ static void load_color_gradient(Color *gradient, size_t gradient_size, unsigned 
 
 static int module(int argc, char **argv)
 {
+    (void)argc;
+    (void)argv;
     double4 screen = {0, 0, 800, 400};
     double4 view = {0, 0, 4, 2};
     double now;
 
+    // https://uigradients.com/
     //load_color_gradient(color_gradient, ARRAY_SIZE(color_gradient), 0x000000, 0xFFFFFF);
     //load_color_gradient(color_gradient, ARRAY_SIZE(color_gradient), 0x0ABFBC, 0xFC354C);
     //load_color_gradient(color_gradient, ARRAY_SIZE(color_gradient), 0xFC354C, 0x0ABFBC);
@@ -194,7 +196,7 @@ static int module(int argc, char **argv)
     const double1 screen_width_half = screen.width / 2.0l;
     const double1 screen_height_half = screen.height / 2.0l;
 
-    int i, j, k;
+    int i, j;
     const double start = GetTime();
     size_t iterations = 0;
     while (!WindowShouldClose())
@@ -313,8 +315,7 @@ static int module(int argc, char **argv)
             const double1 y0 = i*height + topleft.y;
             for (j = 0; j < screen.width; j += 1)
             {
-                const double1 x0 = j*width + topleft.x;
-                plot2(x0, y0, &colors[j]);
+                plot2(j*width + topleft.x, y0, &colors[j]);
             }
 
             for (j = 0; j < screen.width; j += 1)
